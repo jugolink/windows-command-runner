@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt
 from command_controller import CommandController
 from PyQt6.QtGui import QIcon
 
-import resource_rc
+import resource.resource_rc
 
 class AddCommandDialog(QDialog):
     def __init__(self, parent=None):

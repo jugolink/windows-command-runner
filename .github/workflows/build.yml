@@ -34,13 +34,12 @@ jobs:
     - name: Build executable
       shell: cmd
       run: >-
-        pyinstaller --onefile --windowed --clean
-        --hidden-import pkgutil
-        --hidden-import PyQt6.QtCore
-        --hidden-import PyQt6.QtWidgets
-        --hidden-import PyQt6.QtGui
+        pyinstaller --noconfirm --onefile --windowed
+        --icon "resource/logo.ico"
+        --name "windows-command-runner"
+        --add-data "resource;resource/"
         --add-data "commands.json;."
-        src/main.py --name windows-command-runner
+        "src/main.py"
     
     - name: Create Release
       uses: softprops/action-gh-release@v1
