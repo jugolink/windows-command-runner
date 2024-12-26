@@ -32,14 +32,15 @@ jobs:
         python -m pytest tests/ --cov=src
     
     - name: Build executable
-      run: |
-        pyinstaller --onefile --windowed --clean ^
-          --hidden-import pkgutil ^
-          --hidden-import PyQt6.QtCore ^
-          --hidden-import PyQt6.QtWidgets ^
-          --hidden-import PyQt6.QtGui ^
-          --add-data "commands.json;." ^
-          src/main.py --name windows-command-runner
+      shell: cmd
+      run: >-
+        pyinstaller --onefile --windowed --clean
+        --hidden-import pkgutil
+        --hidden-import PyQt6.QtCore
+        --hidden-import PyQt6.QtWidgets
+        --hidden-import PyQt6.QtGui
+        --add-data "commands.json;."
+        src/main.py --name windows-command-runner
     
     - name: Create Release
       uses: softprops/action-gh-release@v1
