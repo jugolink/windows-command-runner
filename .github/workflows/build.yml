@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+# 添加权限配置
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -38,4 +42,4 @@ jobs:
         files: |
           dist/windows-command-runner.exe
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        GITHUB_TOKEN: ${{ secrets.PAT }} 
