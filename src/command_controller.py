@@ -1,13 +1,26 @@
 import json
 import os
+import sys
 import subprocess
 from typing import Dict, List, Tuple
 
 class CommandController:
     def __init__(self):
-        self.config_file = "commands.json"
+        self.config_file = self._get_config_path()
         self._commands: Dict[str, Tuple[str, str]] = {}
         self.load_commands()
+    
+    def _get_config_path(self) -> str:
+        """获取配置文件路径"""
+        if getattr(sys, 'frozen', False):
+            # 打包后的路径
+            base_path = os.path.dirname(sys.executable)
+        else:
+            # 开发环境路径
+            base_path = os.path.dirname(os.path.abspath(__file__))
+            base_path = os.path.dirname(base_path)  # 回到项目根目录
+        
+        return os.path.join(base_path, "commands.json")
     
     def load_commands(self) -> None:
         """从配置文件加载命令，如果文件不存在或无效则创建"""
