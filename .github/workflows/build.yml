@@ -21,21 +21,21 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pyinstaller
+        pip install pyinstaller pytest pytest-cov
     
     - name: Run tests
       run: |
-        python -m pytest tests/
+        python -m pytest tests/ --cov=src
     
     - name: Build executable
       run: |
-        pyinstaller --onefile --windowed src/main.py --name taskbar-transparency
+        pyinstaller --onefile --windowed src/main.py --name windows-command-runner
     
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          dist/taskbar-transparency.exe
+          dist/windows-command-runner.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
