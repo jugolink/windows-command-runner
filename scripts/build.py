@@ -1,51 +1,86 @@
 import os
-import shutil
+import sys
 import subprocess
-from pathlib import Path
+from datetime import datetime
 
-def clean_build():
-    """清理构建文件"""
-    dirs_to_clean = ['build', 'dist']
-    for dir_name in dirs_to_clean:
-        if os.path.exists(dir_name):
-            shutil.rmtree(dir_name)
-    
-    # 清理 .spec 文件
-    for spec_file in Path('.').glob('*.spec'):
-        os.remove(spec_file)
-
-def build_exe():
-    """构建可执行文件"""
+# 设置控制台编码为 UTF-8
+if sys.platform.startswith('win'):
     try:
-        # 确保在项目根目录
-        project_root = Path(__file__).parent.parent
-        os.chdir(project_root)
-        
-        # 清理旧的构建文件
-        clean_build()
-        
-        # 构建命令
-        cmd = [
-            'pyinstaller',
-            '--noconfirm',
-            '--onefile',
-            '--windowed',
-            '--icon', 'resource/logo.ico',
-            '--name', 'windows-command-runner',
-            '--add-data', 'resource;resource/',
-            '--add-data', 'commands.json;.',
-            'src/main.py'
-        ]
-        
-        # 执行构建
-        subprocess.run(cmd, check=True)
-        
-        print("构建成功！可执行文件位于 dist/windows-command-runner.exe")
-        
-    except subprocess.CalledProcessError as e:
-        print(f"构建失败: {e}")
-    except Exception as e:
-        print(f"发生错误: {e}")
+        # 设置控制台代码页为 UTF-8
+        subprocess.run(['chcp', '65001'], shell=True, check=True)
+    except subprocess.CalledProcessError:
+        pass
 
-if __name__ == "__main__":
-    build_exe() 
+# 获取项目根目录
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 切换到项目根目录
+os.chdir(ROOT_DIR)
+
+# 设置环境变量
+os.environ["NUITKA_C_COMPILER"] = "gcc"
+
+# 设置应用程序名称
+APP_NAME = "Windows-Command-Runner.exe"
+
+# 路径配置
+MAIN_SCRIPT = os.path.join(ROOT_DIR, "main.py")
+ICON_PATH = os.path.join(ROOT_DIR, "resource", "logo.ico")
+BUILD_DIR = os.path.join(ROOT_DIR, "build")
+
+# Nuitka 打包配置
+config = [
+    sys.executable,
+    '-m', 'nuitka',
+    '--standalone',
+    '--mingw64',
+    f'--output-dir={BUILD_DIR}',
+    '--lto=yes',
+    '--show-scons',
+    '--enable-plugin=pyqt6',
+    '--jobs=14',
+    '--assume-yes-for-download',
+    '--onefile',
+    '--windows-console-mode=disable',
+    '--output-filename=Windows-Command-Runner.exe',
+    f'--windows-icon-from-ico={ICON_PATH}',
+    '--include-package=src',
+    '--include-package=resource',
+    '--nofollow-import-to=numpy,scipy',
+    '--remove-output',
+    '--include-qt-plugins=platforms,styles,imageformats',
+]
+
+# 添加入口文件
+config.append(MAIN_SCRIPT)
+
+def print_project_info():
+    """打印项目信息"""
+    print(f"Project Root: {ROOT_DIR}")
+    print(f"Main Script: {MAIN_SCRIPT}")
+    print(f"Icon Path: {ICON_PATH}")
+    print(f"Build Directory: {BUILD_DIR}")
+
+try:
+    print("=== WaterMarks Build Script ===")
+    print_project_info()
+    print("\nStarting build process...")
+    start_time = datetime.now()
+    
+    # 执行打包命令
+    result = subprocess.run(config, check=True)
+    
+    if result.returncode == 0:
+        print("\nBuild successful!")
+        end_time = datetime.now()
+        duration = end_time - start_time
+        print(f"Build duration: {duration}")
+        
+        # 输出文件位置
+        exe_path = os.path.join(BUILD_DIR, "Windows-Command-Runner.exe")
+        if os.path.exists(exe_path):
+            print(f"Executable location: {os.path.abspath(exe_path)}")
+    else:
+        print("\nBuild failed!")
+
+except Exception as e:
+    print(f"\nError during build process: {e}") 

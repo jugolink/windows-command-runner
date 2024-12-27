@@ -19,37 +19,36 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.9'
+        python-version: '3.11'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller pytest pytest-cov PyQt6-sip
+        pip install PyQt6
+        pip install nuitka
+        pip install zstandard
+        pip install -i https://pypi.org/simple/ PyQt6-Fluent-Widgets
     
     - name: Run tests
       run: |
         python -m pytest tests/ --cov=src
     
-    - name: Build executable
+    - name: Build with Nuitka
       shell: cmd
       run: >-
-        pyinstaller --noconfirm --onefile --windowed
-        --hidden-import PyQt6.sip
-        --hidden-import PyQt6.QtCore
-        --hidden-import PyQt6.QtWidgets
-        --hidden-import PyQt6.QtGui
-        --icon "resource/logo.ico"
-        --name "windows-command-runner"
-        --add-data "resource;resource/"
-        --add-data "commands.json;."
-        "src/main.py"
+        python scripts/build.py
     
+    - name: List Build Directory
+      run: |
+        dir build
+      shell: cmd
+
     - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')  
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: |
-          dist/windows-command-runner.exe
+        files: build/*.exe
+        draft: false
+        prerelease: false
       env:
-        GITHUB_TOKEN: ${{ secrets.PAT }} 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
